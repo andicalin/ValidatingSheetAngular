@@ -1,1 +1,37 @@
-<p>summary-table works!</p>
+<!-- Table with expandable rows for displaying summarized data -->
+<table *ngIf="summaryData.length > 0">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Hours Worked</th>
+      <th>Entry Count</th>
+      <th>Flags</th>
+      <th>Actions</th> <!-- Column for expand/collapse buttons -->
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Use ng-container to group each summary row with its expandable detail row -->
+    <ng-container *ngFor="let day of summaryData; let i = index">
+      <!-- Summary row -->
+      <tr>
+        <td>{{ day.date }}</td>
+        <td>{{ day.hoursWorked }}</td>
+        <td>{{ day.numEntries }}</td>
+        <td>{{ day.flags }}</td>
+        <td>
+          <!-- Button to toggle the display of the corresponding detail row -->
+          <button (click)="toggleRow(i)">Toggle Details</button>
+        </td>
+      </tr>
+      <!-- Expandable detail row, displayed only if the row is expanded -->
+      <tr *ngIf="expandedRows.has(i)">
+        <td colspan="5">
+          <!-- Placeholder for detailed information. Adjust according to your data structure -->
+          <div *ngFor="let detail of day.details">
+            Detail: {{ detail.info }}
+          </div>
+        </td>
+      </tr>
+    </ng-container>
+  </tbody>
+</table>
