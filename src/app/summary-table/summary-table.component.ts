@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Required for *ngIf and *ngFor
 import { TimeSheetService } from '../time-sheet.service';
+import { Summary } from '../models/summary-model';
+
 
 @Component({
   selector: 'app-summary-table',
@@ -8,9 +10,10 @@ import { TimeSheetService } from '../time-sheet.service';
   imports: [CommonModule],
   templateUrl: './summary-table.component.html',
   styleUrl: './summary-table.component.scss'
+  
 })
 export class SummaryTableComponent implements OnInit {
-  summaryData: any[] = []; // Array to store summary data
+  summaryData: Summary[] = []; // Array to store summary data
   expandedRows = new Set<number>(); // Set to keep track of expanded rows by their indices
 
   constructor(private timeSheetService: TimeSheetService) {}

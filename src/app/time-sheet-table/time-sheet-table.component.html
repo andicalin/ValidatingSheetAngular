@@ -5,15 +5,13 @@
         <th>Date</th>
         <th>Start Time</th>
         <th>End Time</th>
-        <th>Comments</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let entry of timeSheetData">
-        <td>{{ entry.date }}</td>
-        <td>{{ entry.startTime }}</td>
-        <td>{{ entry.endTime }}</td>
-        <td>{{ entry.comments }}</td>
+        <td>{{ entry.startDateTime | date: 'mediumDate' }}</td>
+        <td>{{ entry.startDateTime | date: 'shortTime' }}</td>
+        <td>{{ entry.endDateTime | date: 'shortTime' }}</td>
       </tr>
     </tbody>
   </table>

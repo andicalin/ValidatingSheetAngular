@@ -18,20 +18,10 @@
         <td>{{ day.hoursWorked }}</td>
         <td>{{ day.numEntries }}</td>
         <td>{{ day.flags }}</td>
-        <td>
-          <!-- Button to toggle the display of the corresponding detail row -->
-          <button (click)="toggleRow(i)">Toggle Details</button>
-        </td>
+        <td><span *ngFor="let flag of day.flags; let last = last">{{flag}}{{last ? '' : ', '}}</span></td>
+        <td><button (click)="toggleRow(i)">Toggle Details</button></td>
       </tr>
-      <!-- Expandable detail row, displayed only if the row is expanded -->
-      <tr *ngIf="expandedRows.has(i)">
-        <td colspan="5">
-          <!-- Placeholder for detailed information. Adjust according to your data structure -->
-          <div *ngFor="let detail of day.details">
-            Detail: {{ detail.info }}
-          </div>
-        </td>
-      </tr>
+      <!-- Removed expandable detail row related to 'day.details' -->
     </ng-container>
   </tbody>
 </table>

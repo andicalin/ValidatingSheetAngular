@@ -2,18 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators'; 
 import * as Papa from 'papaparse';
-
-interface TimeSheetEntry {
-  startDateTime: Date;
-  endDateTime: Date;
-  overlapping?: boolean; // Optional property to indicate if the entry overlaps with another
-}
-
-interface DailySummary {
-  hoursWorked: number;
-  numEntries: number;
-  flags: string;
-}
+import { TimeSheetEntry } from './models/time-sheet-entry.model'; // Adjust the path as necessary
+import { Summary } from './models/summary-model';
 
 @Injectable({
   providedIn: 'root'
@@ -32,8 +22,13 @@ export class TimeSheetService {
   readCsvData(file: File): void {
     Papa.parse(file, {
       complete: (result) => {
-        console.log(result.data); // Logging the parsed data to the console for debugging.
-        // Update the BehaviorSubject with the new data.
+        // Assuming each row corresponds to an object with known properties
+        const entries: TimeSheetEntry[] = result.data.map((row: any) => ({
+          startDateTime: new Date(row["Start Date"]), 
+          endDateTime: new Date(row["End Date"]), 
+          // Assuming 'overlapping' is determined later or defaults to false
+          overlapping: false,
+        }));
         this.timeSheetData.next(result.data);
       },
       header: true, // Assuming the CSV has headers. This maps each row to an object with property names derived from the headers.
@@ -44,16 +39,16 @@ export class TimeSheetService {
 
 
   // method to validate time sheet data for overlaps
-  validateDataForOverlaps(data: any[]): { isValid: boolean, overlaps: any[] } {
+  validateDataForOverlaps(data: TimeSheetEntry[]): { isValid: boolean, overlaps: { first: TimeSheetEntry, second: TimeSheetEntry }[] } {
     let isValid = true;
-    const overlaps = [];
+    const overlaps : { first: TimeSheetEntry, second: TimeSheetEntry }[] = [];
 
     // Sort data by startDateTime for easier comparison
-    const sortedData = data.sort((a, b) => new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime());
+    const sortedData = [...data].sort((a, b) => a.startDateTime.getTime() - b.startDateTime.getTime());
 
     for (let i = 0; i < sortedData.length - 1; i++) {
       for (let j = i + 1; j < sortedData.length; j++) {
-        if (new Date(sortedData[i].endDateTime) > new Date(sortedData[j].startDateTime)) {
+        if (sortedData[i].endDateTime > sortedData[j].startDateTime) {
           // Overlap detected
           isValid = false;
           overlaps.push({ first: sortedData[i], second: sortedData[j] });
@@ -61,35 +56,31 @@ export class TimeSheetService {
           break;
         }
       }
+      if (!isValid) break; // Stop checking after finding the first overlap, remove if finding all overlaps
     }
-
     return { isValid, overlaps };
   }
 
 
   //Method to summarize the hours worked daily
-  summarizeDailyHours(data: TimeSheetEntry[]): DailySummary[] {
-    const summary: { [date: string]: DailySummary } = {};
+  summarizeDailyHours(data: TimeSheetEntry[]): Summary[] {
+    const summaryMap: { [date: string]: Summary } = {};
 
     data.forEach(entry => {
-      const date = entry.startDateTime.toDateString();
-      const hoursWorked = (entry.endDateTime.getTime() - entry.startDateTime.getTime()) / (1000 * 60 * 60);
-
-      if (!summary[date]) {
-        summary[date] = { hoursWorked: 0, numEntries: 0, flags: '' };
+      const dateKey = entry.startDateTime.toDateString();
+      if (!summaryMap[dateKey]) {
+        summaryMap[dateKey] = { date: entry.startDateTime, hoursWorked: 0, numEntries: 0, flags: [] };
       }
 
-      summary[date].hoursWorked += hoursWorked;
-      summary[date].numEntries++;
+      const duration = (entry.endDateTime.getTime() - entry.startDateTime.getTime()) / (3600 * 1000); // Duration in hours
+      summaryMap[dateKey].hoursWorked += duration;
+      summaryMap[dateKey].numEntries++;
 
-      // Additional checks for flags could go here
+      // Example flag logic (customize as needed)
+      if (duration > 8) summaryMap[dateKey].flags.push('Overtime'); // Adding flag as string to array
     });
 
-    return Object.keys(summary).map(date => ({
-      date,
-      ...summary[date],
-      hoursWorked: parseFloat(summary[date].hoursWorked.toFixed(2)), // Ensuring hoursWorked is a number with 2 decimal places
-    }));
+    return Object.values(summaryMap); // Directly returning the array of Summary objects
   }
 
   

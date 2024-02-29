@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Required for *ngIf and *ngFor
 import { Subscription } from 'rxjs';
 import { TimeSheetService } from '../time-sheet.service';
+import { TimeSheetEntry } from '../models/time-sheet-entry.model';
+
 @Component({
   selector: 'app-time-sheet-table',
   standalone: true,
@@ -11,7 +13,7 @@ import { TimeSheetService } from '../time-sheet.service';
 })
 export class TimeSheetTableComponent implements OnInit, OnDestroy {
   // Array to store the time sheet data
-  public timeSheetData: any[] = [];
+  public timeSheetData: TimeSheetEntry[] = [];
   // Subscription to manage the observable subscription
   private subscription: Subscription = new Subscription();
 
